@@ -1,0 +1,7 @@
+{
+  "name": "Creative Suite AI",
+  "description": "An AI-powered creative suite that transforms your ideas into stories, images, and videos. Generate narratives from a single phrase, create stunning visuals with text prompts, analyze photos, and generate dynamic music videos from stories or uploaded images. Also features real-time audio transcription.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
