@@ -71,7 +71,7 @@ export const useVeo = () => {
         }
     }, []);
 
-    const runGeneration = useCallback(async (generationFn: () => Promise<any>, contextToSetOnSuccess?: string) => {
+    const runGeneration = useCallback(async (generationFn: () => Promise<any>, contextUpdater?: (prevContext: string) => string) => {
         const hasKey = await checkApiKey();
         if (!hasKey) {
             setError("Please select an API key to generate videos.");
@@ -83,7 +83,6 @@ export const useVeo = () => {
         setVideoUrl(null);
         setExtensionPrompts(null);
         setExtensionError(null);
-        setLastSuccessfulOperation(null);
         setLoadingMessage(loadingMessages[0]);
 
         if (messageIntervalIdRef.current) clearInterval(messageIntervalIdRef.current);
@@ -114,8 +113,8 @@ export const useVeo = () => {
                             const blob = await response.blob();
                             setVideoUrl(URL.createObjectURL(blob));
                             setLastSuccessfulOperation(operation);
-                            if (contextToSetOnSuccess) {
-                                setVideoContext(contextToSetOnSuccess);
+                            if (contextUpdater) {
+                                setVideoContext(contextUpdater);
                             }
                         } else {
                             setError(operation.error?.message || "Video generation finished, but no video URL was found.");
@@ -133,8 +132,7 @@ export const useVeo = () => {
                         setApiKeySelected(false);
                         return;
                     }
-
-                    // Try to parse the error message for better user feedback
+                    
                     try {
                         const errorObj = JSON.parse(e.message);
                         const code = errorObj?.error?.code;
@@ -147,7 +145,6 @@ export const useVeo = () => {
                              setError(`An error occurred while checking video status: ${message || status || e.message}`);
                         }
                     } catch (parseError) {
-                        // If it's not a JSON string, display it directly.
                         setError(`An error occurred while checking video status: ${e.message}`);
                     }
                 }
@@ -170,8 +167,8 @@ export const useVeo = () => {
     }, [checkApiKey]);
 
     const startVideoGeneration = useCallback(async (options: GenerateVideoOptions) => {
-        setVideoContext(options.prompt);
-        runGeneration(() => generateVideo(options));
+        setLastSuccessfulOperation(null);
+        runGeneration(() => generateVideo(options), () => options.prompt);
     }, [runGeneration]);
 
     const getAndSetExtensionPrompts = useCallback(async () => {
@@ -200,10 +197,11 @@ export const useVeo = () => {
         }
         const aspectRatio = videoToExtend.aspectRatio as '16:9' | '9:16';
 
-        const nextVideoContext = `${videoContext}. Then, ${prompt}.`;
-
-        runGeneration(() => generateVideo({ prompt, videoToExtend, aspectRatio }), nextVideoContext);
-    }, [lastSuccessfulOperation, runGeneration, videoContext]);
+        runGeneration(
+            () => generateVideo({ prompt, videoToExtend, aspectRatio }),
+            (prevContext) => `${prevContext}. Then, ${prompt}.`
+        );
+    }, [lastSuccessfulOperation, runGeneration]);
     
     return { 
         isLoading, 
