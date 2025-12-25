@@ -1,11 +1,22 @@
 import { GoogleGenAI, Type, Part } from "@google/genai";
 import { Story } from '../types';
 
+/**
+ * Gemini Service - Handles all AI-related API calls to Google Gemini services
+ * This includes text generation, image generation, video generation, and image analysis
+ */
+
 // This function should not be called directly. It's used by other functions.
 // A new instance is created before each API call to use the most up-to-date API key.
 const getAiClient = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 // --- Text Generation ---
+
+/**
+ * Generates three distinct stories based on a given phrase
+ * @param prompt - The initial phrase to inspire the stories
+ * @returns Promise resolving to an array of Story objects with title and text
+ */
 export const generateStories = async (prompt: string): Promise<Story[]> => {
   const ai = getAiClient();
   const response = await ai.models.generateContent({
@@ -37,6 +48,12 @@ export const generateStories = async (prompt: string): Promise<Story[]> => {
   return JSON.parse(jsonText);
 };
 
+/**
+ * Converts a story into a visual prompt for video generation
+ * @param story - The story text to convert
+ * @param bpm - Beats per minute for the video pacing (60-180)
+ * @returns Promise resolving to a video generation prompt string
+ */
 export const generateVideoPrompt = async (story: string, bpm: number): Promise<string> => {
   const ai = getAiClient();
   const response = await ai.models.generateContent({
@@ -46,6 +63,11 @@ export const generateVideoPrompt = async (story: string, bpm: number): Promise<s
   return response.text;
 };
 
+/**
+ * Generates three extension prompts for continuing a video
+ * @param context - The current video description/context
+ * @returns Promise resolving to an array of three extension prompt strings
+ */
 export const generateExtensionPrompts = async (context: string): Promise<string[]> => {
     const ai = getAiClient();
     const response = await ai.models.generateContent({
@@ -67,6 +89,13 @@ export const generateExtensionPrompts = async (context: string): Promise<string[
 
 
 // --- Image Generation ---
+
+/**
+ * Generates an image from a text prompt using Imagen 4.0
+ * @param prompt - Description of the desired image
+ * @returns Promise resolving to a base64 data URL of the generated image
+ * @throws Error if no image is generated
+ */
 export const generateImage = async (prompt: string): Promise<string> => {
   const ai = getAiClient();
   const response = await ai.models.generateImages({
@@ -88,6 +117,13 @@ export const generateImage = async (prompt: string): Promise<string> => {
 
 
 // --- Image Understanding ---
+
+/**
+ * Analyzes an image and answers questions about it
+ * @param prompt - The question or instruction about the image
+ * @param imagePart - The image data as a Part object
+ * @returns Promise resolving to the analysis text response
+ */
 export const analyzeImage = async (prompt: string, imagePart: Part): Promise<string> => {
     const ai = getAiClient();
     const response = await ai.models.generateContent({
@@ -99,6 +135,10 @@ export const analyzeImage = async (prompt: string, imagePart: Part): Promise<str
 
 
 // --- Video Generation ---
+
+/**
+ * Options for video generation
+ */
 interface GenerateVideoOptions {
     prompt: string;
     aspectRatio: '16:9' | '9:16';
@@ -106,6 +146,11 @@ interface GenerateVideoOptions {
     videoToExtend?: any;
 }
 
+/**
+ * Generates a video from a prompt, optionally with an input image or extending an existing video
+ * @param options - Video generation configuration
+ * @returns Promise resolving to a video generation operation
+ */
 export const generateVideo = async (options: GenerateVideoOptions) => {
     const { prompt, aspectRatio, imagePart, videoToExtend } = options;
     const ai = getAiClient();
@@ -146,6 +191,11 @@ export const generateVideo = async (options: GenerateVideoOptions) => {
 };
 
 
+/**
+ * Polls the status of a video generation operation
+ * @param operation - The operation object from generateVideo
+ * @returns Promise resolving to the updated operation status
+ */
 export const pollVideoOperation = async (operation: any) => {
     const ai = getAiClient();
     return await ai.operations.getVideosOperation({ operation });

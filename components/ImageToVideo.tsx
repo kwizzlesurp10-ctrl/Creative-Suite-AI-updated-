@@ -48,6 +48,19 @@ const ImageToVideo: React.FC = () => {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                setError('Please upload a valid image file (JPEG, PNG, GIF, WebP, etc.)');
+                return;
+            }
+            
+            // Validate file size (max 10MB)
+            const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+            if (file.size > maxSize) {
+                setError('Image file is too large. Please upload an image smaller than 10MB.');
+                return;
+            }
+            
             setImageFile(file);
             setImageUrl(URL.createObjectURL(file));
             setError(null);
@@ -59,11 +72,17 @@ const ImageToVideo: React.FC = () => {
             setError('Please upload an image.');
             return;
         }
+        
+        const trimmedPrompt = prompt.trim();
+        if (!trimmedPrompt) {
+            setError('Please enter a description for the animation.');
+            return;
+        }
 
         setError(null);
         try {
             const imagePart = await fileToPart(imageFile);
-            startVideoGeneration({prompt, imagePart, aspectRatio});
+            startVideoGeneration({prompt: trimmedPrompt, imagePart, aspectRatio});
         } catch (e: any) {
             setError(`Failed to process image: ${e.message}`);
         }
@@ -75,22 +94,29 @@ const ImageToVideo: React.FC = () => {
                 <h2 className="text-2xl font-bold mb-4 text-[#ff00ff]">Image to Video</h2>
                 <p className="text-[#a09cc9] mb-4">Upload an image, describe the animation, and bring it to life.</p>
                 <div className="space-y-4">
-                     <input
+                    <input
                         type="file"
                         accept="image/*"
                         onChange={handleFileChange}
                         className="hidden"
                         ref={fileInputRef}
+                        aria-label="Upload starting image for video"
                     />
                     <button 
                         onClick={() => fileInputRef.current?.click()}
                         className="w-full bg-[#2a275c] hover:bg-[#4d4a8f] text-white font-bold py-3 px-4 rounded-lg transition-colors"
+                        aria-label={imageFile ? `Change image: ${imageFile.name}` : 'Upload starting image'}
                     >
                         {imageFile ? `Selected: ${imageFile.name}` : 'Upload Starting Image'}
                     </button>
                      {imageUrl && (
                         <div className="p-4 bg-[#0d0c1c]/50 rounded-lg flex justify-center">
-                            <img src={imageUrl} alt="upload preview" className="max-h-64 rounded-md" />
+                            <img 
+                                src={imageUrl} 
+                                alt="Upload preview" 
+                                className="max-h-64 rounded-md" 
+                                loading="lazy"
+                            />
                         </div>
                     )}
                     <textarea
@@ -99,7 +125,12 @@ const ImageToVideo: React.FC = () => {
                         placeholder="Describe what should happen in the video..."
                         className="w-full h-24 bg-[#0d0c1c] border border-[#4d4a8f] rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#ff00ff]"
                         disabled={isGeneratingVideo || !imageFile}
+                        maxLength={500}
+                        aria-label="Video animation description"
                     />
+                    <p className="text-xs text-[#6a669a]">
+                        {prompt.length}/500 characters • Supported: JPEG, PNG, GIF, WebP • Max size: 10MB
+                    </p>
                     <div className="flex flex-col sm:flex-row gap-4">
                         <div className="flex-grow">
                              <label className="block text-[#a09cc9] mb-2">Aspect Ratio</label>
@@ -115,8 +146,9 @@ const ImageToVideo: React.FC = () => {
                         <div className="flex items-end">
                             <button
                                 onClick={handleGenerate}
-                                disabled={isGeneratingVideo || !imageFile}
+                                disabled={isGeneratingVideo || !imageFile || !prompt.trim()}
                                 className="w-full h-fit bg-[#ff00ff] hover:bg-[#e600e6] text-[#0d0c1c] font-bold py-2 px-6 rounded-lg transition-colors disabled:bg-[#4d4a8f] disabled:cursor-not-allowed flex items-center justify-center"
+                                aria-label="Generate video from image"
                             >
                                 {isGeneratingVideo ? <><Spinner className="w-5 h-5 mr-2" /> Generating...</> : 'Generate Video'}
                             </button>
@@ -127,7 +159,12 @@ const ImageToVideo: React.FC = () => {
 
             <ApiKeySelector apiKeySelected={apiKeySelected} onSelectApiKey={selectApiKey} featureName="Image to Video Generation" />
             
-            {error && <div className="bg-[#ff00ff]/10 border border-[#ff00ff] text-[#f8bbd0] px-4 py-3 rounded-lg">{error}</div>}
+            {error && (
+                <div className="bg-[#ff00ff]/10 border border-[#ff00ff] text-[#f8bbd0] px-4 py-3 rounded-lg" role="alert">
+                    <strong className="font-bold">Error: </strong>
+                    <span>{error}</span>
+                </div>
+            )}
            
             {(isGeneratingVideo || videoUrl || videoError) && (
                  <Card>
@@ -136,13 +173,24 @@ const ImageToVideo: React.FC = () => {
                         <div className="text-center p-8">
                             <Spinner className="w-12 h-12 mx-auto mb-4" />
                             <p className="text-lg text-[#a09cc9]">{loadingMessage}</p>
+                            <p className="text-sm text-[#6a669a] mt-2">This may take a few minutes...</p>
                         </div>
                     )}
-                     {videoError && <div className="bg-[#ff00ff]/10 border border-[#ff00ff] text-[#f8bbd0] px-4 py-3 rounded-lg">{videoError}</div>}
+                     {videoError && (
+                        <div className="bg-[#ff00ff]/10 border border-[#ff00ff] text-[#f8bbd0] px-4 py-3 rounded-lg" role="alert">
+                            <strong className="font-bold">Error: </strong>
+                            <span>{videoError}</span>
+                        </div>
+                    )}
                     {videoUrl && (
                         <div>
-                            <video src={videoUrl} controls className="w-full rounded-lg" />
-                            <a href={videoUrl} download="creative_ai_image_to_video.mp4" className="mt-4 inline-block w-full text-center bg-[#ff00ff] hover:bg-[#e600e6] text-[#0d0c1c] font-bold py-2 px-4 rounded-lg transition-colors">
+                            <video src={videoUrl} controls className="w-full rounded-lg" aria-label="Generated video" />
+                            <a 
+                                href={videoUrl} 
+                                download="creative_ai_image_to_video.mp4" 
+                                className="mt-4 inline-block w-full text-center bg-[#ff00ff] hover:bg-[#e600e6] text-[#0d0c1c] font-bold py-2 px-4 rounded-lg transition-colors"
+                                aria-label="Download generated video"
+                            >
                                 Download Video
                             </a>
                         </div>
