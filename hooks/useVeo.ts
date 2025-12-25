@@ -2,6 +2,11 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { generateVideo, pollVideoOperation, generateExtensionPrompts } from '../services/geminiService';
 import type { Part } from '@google/genai';
 
+/**
+ * Custom hook for managing Veo video generation and extension
+ * Handles API key management, video generation, polling, and video extensions
+ */
+
 const VEO_POLLING_INTERVAL = 10000; // 10 seconds
 
 const loadingMessages = [
@@ -22,6 +27,10 @@ interface GenerateVideoOptions {
     imagePart?: Part | null;
 }
 
+/**
+ * Custom React hook for Veo video generation
+ * @returns Object containing state and functions for video generation
+ */
 export const useVeo = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);

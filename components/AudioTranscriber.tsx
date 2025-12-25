@@ -151,6 +151,8 @@ const AudioTranscriber: React.FC = () => {
                         ? 'bg-[#ff00ff] hover:bg-[#e600e6]' 
                         : 'bg-[#00ff00] hover:bg-[#00e600]'
                     }`}
+                    aria-label={isRecording ? 'Stop transcribing audio' : 'Start transcribing audio'}
+                    aria-pressed={isRecording}
                 >
                     {isRecording ? (
                         <>
@@ -162,21 +164,28 @@ const AudioTranscriber: React.FC = () => {
                         </>
                     ) : 'Start Transcribing'}
                 </button>
-                {error && <div className="mt-4 bg-[#ff00ff]/10 border border-[#ff00ff] text-[#f8bbd0] px-4 py-3 rounded-lg">{error}</div>}
+                {error && (
+                    <div className="mt-4 bg-[#ff00ff]/10 border border-[#ff00ff] text-[#f8bbd0] px-4 py-3 rounded-lg" role="alert">
+                        <strong className="font-bold">Error: </strong>
+                        <span>{error}</span>
+                    </div>
+                )}
             </Card>
 
             <Card className="min-h-[20rem]">
                 <h3 className="text-xl font-bold mb-4 text-[#00ff00]">Transcription</h3>
-                <div className="space-y-2 text-[#a09cc9]">
+                <div className="space-y-2 text-[#a09cc9]" role="log" aria-live="polite" aria-label="Live transcription output">
                     {history.map((line, index) => (
                         <p key={index}>{line}</p>
                     ))}
                     {isRecording && (
                         <p className="text-[#e0e0ff] font-semibold">
-                            You: {transcription}<span className="inline-block w-2 h-4 bg-[#00ff00] animate-pulse ml-1"></span>
+                            You: {transcription}<span className="inline-block w-2 h-4 bg-[#00ff00] animate-pulse ml-1" aria-hidden="true"></span>
                         </p>
                     )}
-                     {!isRecording && history.length === 0 && <p className="text-[#6a669a]">Transcription will appear here...</p>}
+                     {!isRecording && history.length === 0 && (
+                        <p className="text-[#6a669a]">Transcription will appear here...</p>
+                    )}
                 </div>
             </Card>
         </div>
