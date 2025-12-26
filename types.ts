@@ -1,3 +1,6 @@
+/**
+ * Type definitions for the Creative Suite AI application
+ */
 
 export interface Story {
   title: string;
@@ -6,7 +9,10 @@ export interface Story {
 
 export type AppView = 'story' | 'imageGen' | 'imageAnalyze' | 'imageToVideo' | 'transcriber';
 
-// Extend the Window interface for TypeScript
+/**
+ * Global window interface extensions
+ * These are required for the AI Studio environment and browser compatibility
+ */
 declare global {
   interface Window {
     // FIX: The 'aistudio' property was removed to resolve a conflicting TypeScript declaration error.

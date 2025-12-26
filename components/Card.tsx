@@ -1,5 +1,8 @@
 import React from 'react';
 
+/**
+ * Reusable Card component for consistent styling across the application
+ */
 interface CardProps {
   children: React.ReactNode;
   className?: string;
@@ -11,7 +14,18 @@ const Card: React.FC<CardProps> = ({ children, className = '', onClick }) => {
   const interactiveClasses = onClick ? 'cursor-pointer hover:border-[#00ff00] hover:shadow-[#00ff00]/20' : '';
   
   return (
-    <div className={`${baseClasses} ${interactiveClasses} ${className}`} onClick={onClick}>
+    <div 
+      className={`${baseClasses} ${interactiveClasses} ${className}`} 
+      onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyPress={onClick ? (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          onClick();
+          e.preventDefault();
+        }
+      } : undefined}
+    >
       {children}
     </div>
   );
