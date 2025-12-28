@@ -9,8 +9,10 @@ export type AppView = 'story' | 'imageGen' | 'imageAnalyze' | 'imageToVideo' | '
 // Extend the Window interface for TypeScript
 declare global {
   interface Window {
-    // FIX: The 'aistudio' property was removed to resolve a conflicting TypeScript declaration error.
-    // The error message implies that 'window.aistudio' is already typed in another global declaration.
+    aistudio: {
+      hasSelectedApiKey: () => Promise<boolean>;
+      openSelectKey: () => Promise<void>;
+    };
     webkitAudioContext: typeof AudioContext;
   }
 }
