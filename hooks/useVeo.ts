@@ -123,7 +123,7 @@ export const useVeo = () => {
                             setVideoUrl(URL.createObjectURL(blob));
                             setLastSuccessfulOperation(operation);
                             if (contextUpdater) {
-                                setVideoContext(contextUpdater);
+                                setVideoContext(prevContext => contextUpdater(prevContext));
                             }
                         } else {
                             setError(operation.error?.message || "Video generation finished, but no video URL was found.");
@@ -177,7 +177,8 @@ export const useVeo = () => {
 
     const startVideoGeneration = useCallback(async (options: GenerateVideoOptions) => {
         setLastSuccessfulOperation(null);
-        runGeneration(() => generateVideo(options), () => options.prompt);
+        // For initial video generation, reset context to the new prompt (not accumulate)
+        runGeneration(() => generateVideo(options), (prevContext) => options.prompt);
     }, [runGeneration]);
 
     const getAndSetExtensionPrompts = useCallback(async () => {
@@ -208,6 +209,7 @@ export const useVeo = () => {
 
         runGeneration(
             () => generateVideo({ prompt, videoToExtend, aspectRatio }),
+            // For video extension, accumulate context by appending the new action
             (prevContext) => `${prevContext}. Then, ${prompt}.`
         );
     }, [lastSuccessfulOperation, runGeneration]);
