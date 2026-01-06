@@ -2,6 +2,7 @@ import React from 'react';
 
 /**
  * Reusable Card component for consistent styling across the application
+ * Memoized to prevent unnecessary re-renders
  */
 interface CardProps {
   children: React.ReactNode;
@@ -31,4 +32,4 @@ const Card: React.FC<CardProps> = ({ children, className = '', onClick }) => {
   );
 };
 
-export default Card;
+export default React.memo(Card);
