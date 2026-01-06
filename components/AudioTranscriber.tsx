@@ -5,6 +5,9 @@ import Spinner from './Spinner';
 import Card from './Card';
 
 // --- Audio Helper Functions ---
+// Note: ScriptProcessorNode is deprecated but still functional
+// For production apps, consider migrating to AudioWorkletNode for better performance
+// See: https://developer.mozilla.org/en-US/docs/Web/API/AudioWorkletNode
 function encode(bytes: Uint8Array): string {
   let binary = '';
   const len = bytes.byteLength;
