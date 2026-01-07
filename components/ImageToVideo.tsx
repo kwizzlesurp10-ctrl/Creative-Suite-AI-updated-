@@ -1,25 +1,9 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useVeo } from '../hooks/useVeo';
 import Spinner from './Spinner';
 import Card from './Card';
-import type { Part } from '@google/genai';
 import ApiKeySelector from './ApiKeySelector';
-
-
-const fileToPart = async (file: File): Promise<Part> => {
-    const base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve((reader.result as string).split(',')[1]);
-        reader.onerror = (error) => reject(error);
-    });
-    return {
-        inlineData: {
-            mimeType: file.type,
-            data: base64,
-        },
-    };
-};
+import { fileToPart } from '../utils/fileUtils';
 
 const ImageToVideo: React.FC = () => {
     const [prompt, setPrompt] = useState('Animate this image with a gentle breeze.');
@@ -45,6 +29,15 @@ const ImageToVideo: React.FC = () => {
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // Cleanup object URL on unmount or when file changes to prevent memory leaks
+    useEffect(() => {
+        return () => {
+            if (imageUrl) {
+                URL.revokeObjectURL(imageUrl);
+            }
+        };
+    }, [imageUrl]);
+
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
@@ -59,6 +52,11 @@ const ImageToVideo: React.FC = () => {
             if (file.size > maxSize) {
                 setError('Image file is too large. Please upload an image smaller than 10MB.');
                 return;
+            }
+            
+            // Cleanup old URL before creating new one
+            if (imageUrl) {
+                URL.revokeObjectURL(imageUrl);
             }
             
             setImageFile(file);

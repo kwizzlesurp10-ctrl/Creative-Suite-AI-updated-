@@ -1,13 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { AppView } from './types';
-import StoryGenerator from './components/StoryGenerator';
-import ImageGenie from './components/ImageGenie';
-import ImageAnalyzer from './components/ImageAnalyzer';
-import ImageToVideo from './components/ImageToVideo';
-import AudioTranscriber from './components/AudioTranscriber';
 import ErrorBoundary from './components/ErrorBoundary';
+import Spinner from './components/Spinner';
 
-// FIX: Changed JSX.Element to React.ReactElement to resolve "Cannot find namespace 'JSX'" error.
+// Lazy load components for better performance
+const StoryGenerator = lazy(() => import('./components/StoryGenerator'));
+const ImageGenie = lazy(() => import('./components/ImageGenie'));
+const ImageAnalyzer = lazy(() => import('./components/ImageAnalyzer'));
+const ImageToVideo = lazy(() => import('./components/ImageToVideo'));
+const AudioTranscriber = lazy(() => import('./components/AudioTranscriber'));
+
+// Move TABS outside component to avoid recreating on every render
 const TABS: { id: AppView, label: string, icon: React.ReactElement }[] = [
     { id: 'story', label: 'Story to Video', icon: <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" /></svg> },
     { id: 'imageGen', label: 'Image Genie', icon: <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" /></svg> },
@@ -85,7 +88,13 @@ const App: React.FC = () => {
                 </header>
 
                 <main className="container mx-auto p-4 sm:p-6 lg:p-8" role="main">
-                    {renderActiveView()}
+                    <Suspense fallback={
+                        <div className="flex items-center justify-center min-h-[400px]">
+                            <Spinner className="w-12 h-12" />
+                        </div>
+                    }>
+                        {renderActiveView()}
+                    </Suspense>
                 </main>
 
                 <footer className="text-center py-6 text-[#6a669a] text-sm" role="contentinfo">

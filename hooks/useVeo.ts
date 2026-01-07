@@ -65,9 +65,11 @@ export const useVeo = () => {
         }
     }, []);
     
+    // Check API key on mount only (not on every checkApiKey change)
     useEffect(() => {
         checkApiKey();
-    }, [checkApiKey]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const selectApiKey = useCallback(async () => {
         try {

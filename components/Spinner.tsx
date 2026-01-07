@@ -4,6 +4,7 @@ import React from 'react';
 /**
  * Loading spinner component
  * Provides visual feedback during async operations
+ * Memoized to prevent unnecessary re-renders
  */
 const Spinner: React.FC<{ className?: string }> = ({ className = 'w-6 h-6' }) => {
   return (
@@ -21,4 +22,4 @@ const Spinner: React.FC<{ className?: string }> = ({ className = 'w-6 h-6' }) =>
   );
 };
 
-export default Spinner;
+export default React.memo(Spinner);
