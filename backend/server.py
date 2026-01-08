@@ -5,6 +5,7 @@ Provides REST API endpoints for workflow execution and management
 
 import asyncio
 import logging
+from functools import wraps
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
@@ -25,6 +26,14 @@ app = Flask(__name__)
 CORS(app, origins=config.CORS_ORIGINS, supports_credentials=True)
 
 
+def async_route(f):
+    """Decorator to enable async route handlers in Flask"""
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        return asyncio.run(f(*args, **kwargs))
+    return wrapper
+
+
 @app.route('/api/health', methods=['GET'])
 def health_check():
     """
@@ -40,6 +49,7 @@ def health_check():
 
 
 @app.route('/api/anytool/execute', methods=['POST'])
+@async_route
 async def execute_workflow():
     """
     Execute an AnyTool workflow
@@ -95,6 +105,7 @@ async def execute_workflow():
 
 
 @app.route('/api/anytool/status/<task_id>', methods=['GET'])
+@async_route
 async def get_task_status(task_id: str):
     """
     Get the status of a workflow execution
@@ -128,6 +139,7 @@ async def get_task_status(task_id: str):
 
 
 @app.route('/api/anytool/recording/<task_id>', methods=['GET'])
+@async_route
 async def get_task_recording(task_id: str):
     """
     Get the execution recording/trajectory for a task
@@ -168,6 +180,7 @@ async def get_task_recording(task_id: str):
 
 
 @app.route('/api/anytool/tools', methods=['GET'])
+@async_route
 async def get_available_tools():
     """
     Get list of available tools
@@ -191,6 +204,7 @@ async def get_available_tools():
 
 
 @app.route('/api/anytool/cancel/<task_id>', methods=['POST'])
+@async_route
 async def cancel_task(task_id: str):
     """
     Cancel a running task
