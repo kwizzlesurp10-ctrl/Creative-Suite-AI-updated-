@@ -4,7 +4,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import Spinner from './components/Spinner';
 
 // Lazy load components for better performance
-const StoryGenerator = lazy(() => import('./components/StoryGenerator'));
+const EnhancedStoryGenerator = lazy(() => import('./components/EnhancedStoryGenerator'));
 const ImageGenie = lazy(() => import('./components/ImageGenie'));
 const ImageAnalyzer = lazy(() => import('./components/ImageAnalyzer'));
 const ImageToVideo = lazy(() => import('./components/ImageToVideo'));
@@ -46,12 +46,12 @@ const App: React.FC = () => {
 
     const renderActiveView = () => {
         switch (activeView) {
-            case 'story': return <StoryGenerator />;
+            case 'story': return <EnhancedStoryGenerator />;
             case 'imageGen': return <ImageGenie />;
             case 'imageAnalyze': return <ImageAnalyzer />;
             case 'imageToVideo': return <ImageToVideo />;
             case 'transcriber': return <AudioTranscriber />;
-            default: return <StoryGenerator />;
+            default: return <EnhancedStoryGenerator />;
         }
     };
     
